@@ -92,4 +92,7 @@ dependencies {
     implementation(libs.roomKtx)
     ksp(libs.roomCompiler)
 
+
+    //encryption
+    implementation ("commons-codec:commons-codec:1.15")
 }

@@ -1,6 +1,5 @@
 package com.jasmeet.chaintechassignment.view.screens
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,15 +34,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -63,13 +59,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.jasmeet.chaintechassignment.R
 import com.jasmeet.chaintechassignment.model.data.AuthData
 import com.jasmeet.chaintechassignment.utils.Utils
 import com.jasmeet.chaintechassignment.view.appComponents.PasswordFieldComponent
@@ -83,6 +82,9 @@ import kotlinx.coroutines.launch
 fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
 
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var openDetailsBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var selectedAuthData by rememberSaveable { mutableStateOf<AuthData?>(null) }
+
 
     val allData = vm.allAuthData.observeAsState(initial = emptyList())
 
@@ -116,22 +118,41 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
             )
             HorizontalDivider(color = Color(0xffe8e8e8), thickness = 3.dp)
 
-            LazyColumn(
-                Modifier
-                    .padding(top = 15.dp)
-                    .fillMaxSize()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(15.dp)
-            ) {
-                items(allData.value) { authData ->
+            AnimatedVisibility(visible = allData.value.isEmpty(), modifier = Modifier.weight(1f)) {
+                Box(modifier = Modifier.weight(1f)){
+                    TextComponent(text = "Add your password by clicking + button", modifier = Modifier.align(Alignment.Center), textSize = 22.sp
+                    )
+                }
 
-                    CardItem(authData = authData) {
-                        Log.d("Values",it.toString())
+            }
+
+            AnimatedVisibility(visible = allData.value.isNotEmpty(),modifier = Modifier.weight(1f)) {
+                Box(Modifier.weight(1f)) {
+                    LazyColumn(
+                        Modifier
+                            .padding(top = 15.dp)
+                            .fillMaxSize().align(Alignment.TopCenter),
+                        verticalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        items(allData.value) { authData ->
+
+                            CardItem(authData = authData) {
+                                selectedAuthData = it
+                                openBottomSheet = false
+                                openDetailsBottomSheet = true
+
+                            }
+
+                        }
+
                     }
 
                 }
 
+
+
             }
+
             Box(Modifier.align(Alignment.End)) {
                 FloatingActionButton(
                     onClick = { openBottomSheet = !openBottomSheet },
@@ -150,6 +171,7 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                 }
 
             }
+
 
         }
         AnimatedVisibility(
@@ -254,18 +276,16 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                                 scope.launch {
 
                                     snackbarHostState.showSnackbar(
-                                        message = "Snackbar is here",
-                                        actionLabel = "Undo",
+                                        message = "Please fill all the fields !",
                                         duration = SnackbarDuration.Short,
-
-                                        )
+                                    )
                                 }
                             } else {
                                 vm.insert(
                                     AuthData(
                                         name = accountName,
                                         username = email,
-                                        password = password
+                                        password = Utils.encrypt(password)
                                     )
                                 )
                                 vm.getAllData()
@@ -295,17 +315,217 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
             }
         }
 
+        AnimatedVisibility(
+            visible = openDetailsBottomSheet,
+            enter = fadeIn() + slideInVertically { it },
+            exit = fadeOut() + slideOutVertically { it },
+        ) {
+
+            Box(
+                Modifier
+                    .clickable {
+                        openDetailsBottomSheet = false
+                    }
+                    .fillMaxSize()
+                    .background(Color(0x4D000000))) {
+
+                Column(
+                    Modifier
+                        .background(
+                            Color(0xfff9f9f9),
+                            shape = RoundedCornerShape(topEnd = 20.dp, topStart = 20.dp)
+                        )
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .align(Alignment.BottomCenter)
+
+                ) {
+
+                    HorizontalDivider(
+                        Modifier
+                            .padding(top = 12.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .width(80.dp)
+                            .clip(RoundedCornerShape(50)),
+                        color = Color(0xffe3e3e3),
+                        thickness = 5.dp
+                    )
+
+                    TextComponent(
+                        text = "Account Details",
+                        modifier = Modifier
+                            .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 25.dp)
+                            .fillMaxWidth(),
+                        textColor = Color(0xff3F7DE3),
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    TextComponent(
+                        text = "Account Type",
+                        textColor = Color(0xffcccccc),
+                        textSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp)
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    selectedAuthData?.let {
+                        TextComponent(
+                            text = it.name,
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp)
+                                .fillMaxWidth(),
+
+                            )
+                    }
+                    Spacer(modifier = Modifier.height(15.dp))
+
+
+                    TextComponent(
+                        text = "UserName/ Email",
+                        textColor = Color(0xffcccccc),
+                        textSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp)
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    selectedAuthData?.let {
+                        TextComponent(
+                            text = it.username,
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp)
+                                .fillMaxWidth(),
+
+                            )
+                    }
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    TextComponent(
+                        text = "Password",
+                        textColor = Color(0xffcccccc),
+                        textSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 14.dp)
+                    )
+
+                    val passwordVisible = remember {
+                        mutableStateOf(false)
+                    }
+                    val iconImage =
+                        if (passwordVisible.value)
+                            R.drawable.ic_show
+                        else
+                            R.drawable.ic_hide
+
+                    Row(
+                        Modifier
+                            .padding(horizontal = 14.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        val orgPassword = selectedAuthData?.let { Utils.decrypt(it.password) }
+
+                        if (!passwordVisible.value) {
+                            orgPassword?.let { it1 ->
+                                PasswordText(
+                                    it1
+
+                                )
+                            }
+                        } else {
+                            orgPassword?.let {
+                                TextComponent(
+                                    text = it,
+                                )
+                            }
+                        }
+
+
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = iconImage),
+                            contentDescription = null,
+                            tint = Color(0xffd7d7d7),
+                            modifier = Modifier.clickable {
+                                passwordVisible.value = !passwordVisible.value
+                            }
+                        )
+
+
+                    }
+
+                    Spacer(modifier = Modifier.height(25.dp))
+
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()) {
+
+                        Button(
+                            onClick = { },
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp)
+                                .weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xff2c2c2c)
+                            )
+                        ) {
+                            TextComponent(
+                                text = "Edit",
+                                textColor = Color.White,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+
+                        Button(
+                            onClick = {
+                                vm.delete(selectedAuthData!!)
+                                openDetailsBottomSheet = false
+                                scope.launch {
+
+                                    snackbarHostState.showSnackbar(
+                                        message = "Password deleted successfully ",
+                                        duration = SnackbarDuration.Short,
+                                    )
+                                }
+
+                            },
+                            modifier = Modifier
+                                .padding(horizontal = 14.dp)
+                                .weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xfff04646)
+                            )
+                        ) {
+                            TextComponent(
+                                text = "Delete",
+                                textColor = Color.White,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.captionBar))
+                }
+
+
+            }
+
+        }
+
     }
 }
 
 @Composable
 fun CardItem(authData: AuthData, onclick: (AuthData) -> Unit) {
     Surface(
-        border = BorderStroke(.8.dp,Color(0xffededed)),
+        border = BorderStroke(.8.dp, Color(0xffededed)),
         onClick = {
             onclick.invoke(authData)
         },
-        color =  Color.White,
+        color = Color.White,
         modifier = Modifier
             .padding(horizontal = 15.dp)
             .fillMaxWidth(),
@@ -328,16 +548,12 @@ fun CardItem(authData: AuthData, onclick: (AuthData) -> Unit) {
 
             Spacer(modifier = Modifier.width(15.dp))
 
-            PasswordText(password = authData.password)
-
+            PasswordText(password = authData.password.take(8))
             Spacer(modifier = Modifier.weight(1f))
-
-
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null
-                )
-
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null
+            )
 
 
         }

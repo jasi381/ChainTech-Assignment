@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "user_data")
 data class AuthData(
     @PrimaryKey(autoGenerate = true)
-    val id :Long=0L,
+    val id: Long = 0L,
     val name: String,
     val username: String,
     val password: String
