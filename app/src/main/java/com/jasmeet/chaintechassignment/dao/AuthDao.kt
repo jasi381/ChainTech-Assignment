@@ -12,9 +12,6 @@ interface AuthDao {
     @Insert
     suspend fun insert(entity: AuthData)
 
-    @Update
-    suspend fun update(entity: AuthData)
-
     @Delete
     suspend fun delete(entity: AuthData)
 

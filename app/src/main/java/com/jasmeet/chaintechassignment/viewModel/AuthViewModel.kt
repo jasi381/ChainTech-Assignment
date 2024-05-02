@@ -30,7 +30,6 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _allAuthData.value = repository.getAll()
-                Log.d("vm",_allAuthData.value.toString())
             } catch (e: Exception) {
                 Log.e("MyViewModel", "Error getting data: ${e.message}")
             }
@@ -41,12 +40,6 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             repository.insert(entity)
             getAllData()
-        }
-    }
-
-    fun update(entity: AuthData) {
-        viewModelScope.launch {
-            repository.update(entity)
         }
     }
 

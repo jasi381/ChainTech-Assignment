@@ -214,7 +214,8 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                         openBottomSheet = false
                     }
                     .fillMaxSize()
-                    .background(Color(0x4D000000))) {
+                    .background(Color(0x4D000000))
+            ) {
 
                 Column(
                     Modifier
@@ -288,6 +289,7 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
+
                     AnimatedVisibility(visible = password.trim().isNotEmpty()) {
                         val text = "Your password strength is ${strength.value}"
                         val color = when (strength.value) {
@@ -506,7 +508,7 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                     ) {
 
                         Button(
-                            onClick = { },
+                            onClick = {},
                             modifier = Modifier
                                 .padding(horizontal = 14.dp)
                                 .weight(1f),
@@ -559,6 +561,7 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
             }
 
         }
+
 
     }
 }

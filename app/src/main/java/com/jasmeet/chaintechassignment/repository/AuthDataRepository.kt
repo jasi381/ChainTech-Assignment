@@ -9,10 +9,6 @@ class AuthDataRepository (private val myDao: AuthDao) {
         myDao.insert(entity)
     }
 
-    suspend fun update(entity: AuthData) {
-        myDao.update(entity)
-    }
-
     suspend fun delete(entity: AuthData) {
         myDao.delete(entity)
     }
