@@ -70,8 +70,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jasmeet.chaintechassignment.R
 import com.jasmeet.chaintechassignment.model.data.AuthData
+import com.jasmeet.chaintechassignment.utils.PasswordStrength
 import com.jasmeet.chaintechassignment.utils.Utils
 import com.jasmeet.chaintechassignment.view.appComponents.PasswordFieldComponent
+import com.jasmeet.chaintechassignment.view.appComponents.PasswordStrengthIndicator
 import com.jasmeet.chaintechassignment.view.appComponents.PasswordText
 import com.jasmeet.chaintechassignment.view.appComponents.TextComponent
 import com.jasmeet.chaintechassignment.view.appComponents.TextFieldComponent
@@ -119,19 +121,26 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
             HorizontalDivider(color = Color(0xffe8e8e8), thickness = 3.dp)
 
             AnimatedVisibility(visible = allData.value.isEmpty(), modifier = Modifier.weight(1f)) {
-                Box(modifier = Modifier.weight(1f)){
-                    TextComponent(text = "Add your password by clicking + button", modifier = Modifier.align(Alignment.Center), textSize = 22.sp
+                Box(modifier = Modifier.weight(1f)) {
+                    TextComponent(
+                        text = "Add your password by clicking + button",
+                        modifier = Modifier.align(Alignment.Center),
+                        textSize = 22.sp
                     )
                 }
 
             }
 
-            AnimatedVisibility(visible = allData.value.isNotEmpty(),modifier = Modifier.weight(1f)) {
+            AnimatedVisibility(
+                visible = allData.value.isNotEmpty(),
+                modifier = Modifier.weight(1f)
+            ) {
                 Box(Modifier.weight(1f)) {
                     LazyColumn(
                         Modifier
                             .padding(top = 15.dp)
-                            .fillMaxSize().align(Alignment.TopCenter),
+                            .fillMaxSize()
+                            .align(Alignment.TopCenter),
                         verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
                         items(allData.value) { authData ->
@@ -148,7 +157,6 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                     }
 
                 }
-
 
 
             }
@@ -189,6 +197,16 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
             var password by remember {
                 mutableStateOf("")
             }
+
+            val strength = remember {
+                mutableStateOf(Utils.getPasswordStrength(password))
+            }
+
+            LaunchedEffect(password) {
+                strength.value = Utils.getPasswordStrength(password)
+
+            }
+
 
             Box(
                 Modifier
@@ -268,6 +286,32 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                         Text(text = "Generate a password")
 
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AnimatedVisibility(visible = password.trim().isNotEmpty()) {
+                        val text = "Your password strength is ${strength.value}"
+                        val color = when (strength.value) {
+                            PasswordStrength.WEAK -> Color.Red
+                            PasswordStrength.MEDIUM -> Color.Blue
+                            PasswordStrength.STRONG -> Color.Black
+                        }
+
+                        Column {
+                            PasswordStrengthIndicator(strength = strength.value)
+                            Spacer(modifier = Modifier.height(5.dp))
+                            TextComponent(
+                                text = text,
+                                textSize = 13.sp,
+                                modifier = Modifier.padding(horizontal = 14.dp),
+                                textColor = color
+                            )
+
+                        }
+
+
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
                     Button(
                         onClick = {
                             if (accountName.trim().isEmpty() || email.trim()
@@ -458,7 +502,8 @@ fun HomeScreen(vm: AuthViewModel = hiltViewModel()) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .navigationBarsPadding()) {
+                            .navigationBarsPadding()
+                    ) {
 
                         Button(
                             onClick = { },

@@ -65,4 +65,37 @@ object Utils {
         return String(decrypted)
     }
 
+    fun getPasswordStrength(password: String): PasswordStrength {
+        if (password.isEmpty()) {
+            return PasswordStrength.WEAK
+        }
+
+        val digitRegex = Regex("\\d")
+        val upperCaseRegex = Regex("[A-Z]")
+        val lowerCaseRegex = Regex("[a-z]")
+        val specialCharRegex = Regex("[^A-Za-z0-9]")
+
+        val containsDigit = digitRegex.containsMatchIn(password)
+        val containsUpperCase = upperCaseRegex.containsMatchIn(password)
+        val containsLowerCase = lowerCaseRegex.containsMatchIn(password)
+        val containsSpecialChar = specialCharRegex.containsMatchIn(password)
+
+        val hasEnoughLength = password.length >= 8
+
+        return when {
+            hasEnoughLength && containsDigit && containsUpperCase && containsLowerCase && containsSpecialChar -> PasswordStrength.STRONG
+            (hasEnoughLength && containsDigit && containsUpperCase) || (hasEnoughLength && containsDigit && containsLowerCase) || (hasEnoughLength && containsDigit && containsSpecialChar) ||
+                    (hasEnoughLength && containsUpperCase && containsLowerCase) || (hasEnoughLength && containsUpperCase && containsSpecialChar) ||
+                    (hasEnoughLength && containsLowerCase && containsSpecialChar) -> PasswordStrength.MEDIUM
+            else -> PasswordStrength.WEAK
+        }
+    }
+
+
+}
+
+enum class PasswordStrength {
+    WEAK,
+    MEDIUM,
+    STRONG
 }
